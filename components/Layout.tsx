@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { 
   Link, 
   useLocation, 
@@ -12,13 +13,21 @@ import {
   Settings, 
   LogOut,
   Menu,
-  X
+  X,
+  ChevronRight,
+  ShieldAlert
 } from 'lucide-react';
-import { logout } from '../services/mockBackend';
+import { logout, getCurrentUser } from '../services/mockBackend';
+import { User } from '../types';
 
 const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (v: boolean) => void }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    setUser(getCurrentUser());
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -30,59 +39,97 @@ const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (v: boolea
     { to: '/scraper', icon: Search, label: 'Email Scraper' },
     { to: '/contacts', icon: Users, label: 'Contacts' },
     { to: '/campaigns', icon: Send, label: 'Campaigns' },
-    { to: '/settings', icon: Settings, label: 'SMTP Settings' },
+    { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
   return (
     <>
-      {/* Mobile Overlay */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-20 md:hidden" 
-          onClick={() => setIsOpen(false)}
-        />
-      )}
+      {/* Mobile Overlay with Blur */}
+      <div 
+        className={`fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-20 md:hidden transition-opacity duration-300 ${
+          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setIsOpen(false)}
+      />
 
-      <aside className={`fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-100">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">O</div>
-            <span className="text-xl font-bold text-gray-800">OutreachFlow</span>
+      {/* Sidebar Container */}
+      <aside 
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-slate-200 transform transition-transform duration-300 cubic-bezier(0.4, 0, 0.2, 1) md:translate-x-0 ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {/* Logo Area */}
+        <div className="flex items-center justify-between h-16 px-6 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-primary-600 rounded-lg shadow-lg shadow-primary-500/30 flex items-center justify-center text-white font-bold text-xl">
+              O
+            </div>
+            <span className="text-lg font-bold text-slate-800 tracking-tight">OutreachFlow</span>
           </div>
-          <button onClick={() => setIsOpen(false)} className="md:hidden text-gray-500">
-            <X size={24} />
+          <button 
+            onClick={() => setIsOpen(false)} 
+            className="md:hidden p-1 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-100 transition-colors"
+          >
+            <X size={20} />
           </button>
         </div>
 
+        {/* Navigation Links */}
         <nav className="p-4 space-y-1">
           {links.map((link) => {
             const Icon = link.icon;
-            // Active check using useLocation hook
             const isActive = location.pathname === link.to || (link.to !== '/' && location.pathname.startsWith(link.to));
+            
             return (
               <Link
                 key={link.to}
                 to={link.to}
                 onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                className={`group flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                   isActive 
-                    ? 'bg-primary-50 text-primary-700' 
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-primary-50 text-primary-700 shadow-sm' 
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                <Icon size={20} />
-                {link.label}
+                <div className="flex items-center gap-3">
+                  <Icon size={20} className={`transition-colors ${isActive ? 'text-primary-600' : 'text-slate-400 group-hover:text-slate-600'}`} />
+                  {link.label}
+                </div>
+                {isActive && <ChevronRight size={16} className="text-primary-400" />}
               </Link>
             );
           })}
+
+          {/* Admin Link - Only visible to Admins */}
+          {user?.role === 'admin' && (
+            <>
+              <div className="my-2 border-t border-slate-100 mx-2"></div>
+              <Link
+                to="/admin"
+                onClick={() => setIsOpen(false)}
+                className={`group flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  location.pathname === '/admin'
+                    ? 'bg-slate-800 text-white shadow-md shadow-slate-900/20' 
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <ShieldAlert size={20} className={`transition-colors ${location.pathname === '/admin' ? 'text-rose-400' : 'text-slate-400 group-hover:text-slate-600'}`} />
+                  Admin Panel
+                </div>
+                {location.pathname === '/admin' && <div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>}
+              </Link>
+            </>
+          )}
         </nav>
 
-        <div className="absolute bottom-0 w-full p-4 border-t border-gray-100">
+        {/* Footer Area */}
+        <div className="absolute bottom-0 w-full p-4 border-t border-slate-100 bg-slate-50/50">
           <button 
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+            className="flex items-center gap-3 w-full px-4 py-2.5 text-sm font-medium text-slate-600 rounded-lg hover:bg-red-50 hover:text-red-600 transition-all duration-200 group"
           >
-            <LogOut size={20} />
+            <LogOut size={18} className="text-slate-400 group-hover:text-red-500 transition-colors" />
             Sign Out
           </button>
         </div>
@@ -95,19 +142,24 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
   const [isSidebarOpen, setSidebarOpen] = React.useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-slate-50 flex font-sans">
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setSidebarOpen} />
       
-      <div className="flex-1 md:ml-64 flex flex-col min-h-screen">
-        <header className="bg-white h-16 border-b border-gray-200 flex items-center px-6 md:hidden sticky top-0 z-10">
-          <button onClick={() => setSidebarOpen(true)} className="text-gray-600">
+      <div className="flex-1 md:ml-64 flex flex-col min-h-screen transition-all duration-300">
+        {/* Mobile Header */}
+        <header className="bg-white/80 backdrop-blur-md h-16 border-b border-slate-200 flex items-center px-4 md:hidden sticky top-0 z-10 transition-colors">
+          <button 
+            onClick={() => setSidebarOpen(true)} 
+            className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+          >
             <Menu size={24} />
           </button>
-          <span className="ml-4 font-bold text-gray-800">OutreachFlow</span>
+          <span className="ml-3 font-bold text-slate-800 text-lg">OutreachFlow</span>
         </header>
 
-        <main className="flex-1 p-6 overflow-y-auto">
-          <div className="max-w-7xl mx-auto">
+        {/* Main Content Area */}
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto overflow-x-hidden">
+          <div className="max-w-7xl mx-auto animate-fade-in">
             {children}
           </div>
         </main>

@@ -1,8 +1,11 @@
+
 export interface User {
   id: string;
   email: string;
   name: string;
   token: string;
+  role: 'admin' | 'user';
+  status: 'active' | 'suspended';
 }
 
 export interface SmtpConfig {
@@ -38,16 +41,61 @@ export interface Campaign {
   id: string;
   name: string;
   status: 'draft' | 'running' | 'completed' | 'paused';
-  steps: CampaignStep[]; // Replaces single subject/body
+  steps: CampaignStep[]; 
   sentCount: number;
   openCount: number;
   totalContacts: number;
   createdAt: string;
 }
 
+export interface CampaignProgress {
+  campaignId: string;
+  contactId: string;
+  currentStepIndex: number;
+  status: 'pending' | 'active' | 'completed' | 'bounced';
+  lastActionAt: string;
+  nextActionAt: string;
+}
+
+export interface EmailLog {
+  id: string;
+  campaignId: string;
+  contactId: string;
+  contactEmail: string;
+  stepOrder: number;
+  subject: string;
+  status: 'sent' | 'failed' | 'opened' | 'clicked';
+  sentAt: string;
+  errorMessage?: string;
+}
+
 export interface ScrapeResult {
   url: string;
   emailsFound: string[];
   status: 'success' | 'failed';
+  timestamp: string;
+}
+
+// --- Admin Types ---
+
+export interface SystemStats {
+  totalUsers: number;
+  activeUsers: number;
+  totalEmailsSent: number;
+  totalCampaigns: number;
+  systemHealth: {
+    cpuUsage: number;
+    memoryUsage: number;
+    queueLength: number;
+    errorRate: number;
+  }
+}
+
+export interface AdminLog {
+  id: string;
+  type: 'email' | 'scrape' | 'system';
+  userEmail: string;
+  action: string;
+  status: 'success' | 'warning' | 'error';
   timestamp: string;
 }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from '../App';
 import { mockLogin, mockRegister } from '../services/mockBackend';
-import { Mail, Lock, ArrowRight, Loader2, UserPlus, LogIn, AlertCircle } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader2, UserPlus, LogIn, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -16,7 +16,6 @@ export const Login = () => {
     setLoading(true);
     setError('');
 
-    // Client-side Gmail check for instant feedback
     if (!email.toLowerCase().endsWith('@gmail.com')) {
       setError('Please use a valid @gmail.com address');
       setLoading(false);
@@ -45,92 +44,105 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-slate-50 to-white px-4">
+      <div className="max-w-[420px] w-full animate-slide-up">
+        {/* Brand Header */}
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-primary-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4">O</div>
-          <h2 className="text-3xl font-bold text-gray-900">
-            {isRegistering ? 'Create Account' : 'Welcome back'}
+          <div className="w-14 h-14 bg-gradient-to-tr from-primary-600 to-primary-500 rounded-2xl shadow-xl shadow-primary-500/20 flex items-center justify-center text-white font-bold text-2xl mx-auto mb-6 transform rotate-3 hover:rotate-6 transition-transform duration-300">
+            O
+          </div>
+          <h2 className="text-3xl font-bold text-slate-900 tracking-tight">
+            {isRegistering ? 'Create Account' : 'Welcome Back'}
           </h2>
-          <p className="text-gray-500 mt-2">
+          <p className="text-slate-500 mt-2 text-sm leading-relaxed max-w-[280px] mx-auto">
             {isRegistering 
-              ? 'Get started with your outreach automation' 
-              : 'Sign in to your OutreachFlow account'}
+              ? 'Start automating your cold outreach campaigns today.' 
+              : 'Sign in to manage your campaigns and contacts.'}
           </p>
         </div>
 
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg text-sm border border-red-200 flex items-start gap-3">
-            <AlertCircle className="shrink-0 mt-0.5" size={18} />
-            <div className="flex-1 font-medium">{error}</div>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Gmail Address</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all placeholder:text-gray-400"
-                placeholder="yourname@gmail.com"
-                required
-              />
+        {/* Card */}
+        <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/60 p-8 border border-slate-100">
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl text-sm border border-red-100 flex items-start gap-3 animate-fade-in">
+              <AlertCircle className="shrink-0 mt-0.5" size={18} />
+              <div className="flex-1 font-medium">{error}</div>
             </div>
-            <p className="mt-1.5 text-xs text-gray-500">Only @gmail.com addresses are supported.</p>
-          </div>
+          )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all"
-                placeholder="••••••••"
-                required
-                minLength={6}
-              />
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-1.5">
+              <label className="block text-sm font-semibold text-slate-700 ml-1">Gmail Address</label>
+              <div className="relative group">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={20} />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all placeholder:text-slate-400 text-slate-900"
+                  placeholder="name@gmail.com"
+                  required
+                />
+              </div>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-primary-600 text-white py-3 rounded-xl font-semibold hover:bg-primary-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
-          >
-            {loading ? (
-              <Loader2 className="animate-spin" />
-            ) : (
-              isRegistering ? (
-                <>Sign Up <UserPlus size={20} /></>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between ml-1">
+                <label className="block text-sm font-semibold text-slate-700">Password</label>
+                {!isRegistering && (
+                  <button type="button" className="text-xs font-medium text-primary-600 hover:text-primary-700">Forgot?</button>
+                )}
+              </div>
+              <div className="relative group">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={20} />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all placeholder:text-slate-400 text-slate-900"
+                  placeholder="••••••••"
+                  required
+                  minLength={6}
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-primary-600 text-white py-3.5 rounded-xl font-semibold hover:bg-primary-700 focus:ring-4 focus:ring-primary-100 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-primary-600/20 hover:shadow-primary-600/30 transform active:scale-[0.98]"
+            >
+              {loading ? (
+                <Loader2 className="animate-spin" size={20} />
               ) : (
-                <>Sign In <ArrowRight size={20} /></>
-              )
-            )}
-          </button>
-        </form>
+                isRegistering ? (
+                  <>Create Account <UserPlus size={20} /></>
+                ) : (
+                  <>Sign In <ArrowRight size={20} /></>
+                )
+              )}
+            </button>
+          </form>
 
-        <div className="mt-8 text-center pt-6 border-t border-gray-100">
-          <p className="text-sm text-gray-500">
-            {isRegistering ? 'Already have an account?' : "Don't have an account?"}
-          </p>
-          <button 
-            onClick={toggleMode}
-            className="mt-2 text-primary-600 font-medium hover:text-primary-700 transition-colors flex items-center justify-center gap-1 mx-auto"
-          >
-            {isRegistering ? (
-              <>Sign in instead <LogIn size={16} /></>
-            ) : (
-              <>Create free account <ArrowRight size={16} /></>
-            )}
-          </button>
+          <div className="mt-8 pt-6 border-t border-slate-100">
+             <button 
+              onClick={toggleMode}
+              className="w-full group flex flex-col items-center justify-center gap-1"
+            >
+              <span className="text-sm text-slate-500">
+                {isRegistering ? 'Already have an account?' : "Don't have an account?"}
+              </span>
+              <span className="text-sm font-semibold text-primary-600 group-hover:text-primary-700 transition-colors flex items-center gap-1">
+                {isRegistering ? 'Sign in instead' : 'Create free account'} 
+                <ArrowRight size={14} className="transform group-hover:translate-x-1 transition-transform" />
+              </span>
+            </button>
+          </div>
         </div>
+        
+        <p className="text-center text-xs text-slate-400 mt-8">
+          &copy; 2024 OutreachFlow Inc.
+        </p>
       </div>
     </div>
   );

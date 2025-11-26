@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useContext, createContext } from 'react';
 import { Login } from './pages/Login';
 import { Layout } from './components/Layout';
@@ -6,6 +7,7 @@ import { Scraper } from './pages/Scraper';
 import { Contacts } from './pages/Contacts';
 import { Campaigns } from './pages/Campaigns';
 import { Settings } from './pages/Settings';
+import { AdminPanel } from './pages/AdminPanel';
 import { getCurrentUser } from './services/mockBackend';
 
 // Custom Router Implementation to replace missing react-router-dom
@@ -109,6 +111,25 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+// Wrapper for Admin Routes
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const user = getCurrentUser();
+  
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  if (user.role !== 'admin') {
+    return <Navigate to="/" replace />;
+  }
+
+  return (
+    <Layout>
+      {children}
+    </Layout>
+  );
+};
+
 function App() {
   return (
     <HashRouter>
@@ -143,6 +164,12 @@ function App() {
           <ProtectedRoute>
             <Settings />
           </ProtectedRoute>
+        } />
+        
+        <Route path="/admin" element={
+          <AdminRoute>
+            <AdminPanel />
+          </AdminRoute>
         } />
         
         <Route path="*" element={<Navigate to="/" replace />} />
