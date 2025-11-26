@@ -37,7 +37,7 @@ export function HashRouter({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function Routes({ children }: { children?: React.ReactNode }) {
+export function Routes({ children }: { children: React.ReactNode }) {
   const { path } = useContext(RouterContext);
   let match: React.ReactNode = null;
   let fallback: React.ReactNode = null;
@@ -97,7 +97,7 @@ export function Link({ to, children, className, onClick }: any) {
 }
 
 // Wrapper for protected routes
-const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const user = getCurrentUser();
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -111,7 +111,7 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
 };
 
 // Wrapper for Admin Routes
-const AdminRoute = ({ children }: { children?: React.ReactNode }) => {
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const user = getCurrentUser();
   
   if (!user) {
