@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- Using Tailwind CDN for quick styling without complex PostCSS setup in this prototype -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -32,7 +33,7 @@
                 900: '#312e81',
               },
               slate: {
-                850: '#1e293b', // Custom dark shade
+                850: '#1e293b',
               }
             },
             animation: {
@@ -53,25 +54,10 @@
         }
       }
     </script>
-    <script type="importmap">
-    {
-      "imports": {
-        "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
-        "recharts": "https://aistudiocdn.com/recharts@^3.5.0",
-        "react/": "https://aistudiocdn.com/react@^19.2.0/",
-        "react": "https://aistudiocdn.com/react@^19.2.0",
-        "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-        "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-        "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
-        "cheerio": "https://esm.sh/cheerio@1.0.0-rc.12"
-      }
-    }
-    </script>
     <style>
       body {
         font-family: 'Inter', sans-serif;
       }
-      /* Custom scrollbar for cleaner look */
       ::-webkit-scrollbar {
         width: 8px;
         height: 8px;
@@ -87,8 +73,24 @@
         background: #94a3b8; 
       }
     </style>
-  </head>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "cheerio": "https://aistudiocdn.com/cheerio@^1.1.2",
+    "vite": "https://aistudiocdn.com/vite@^7.2.4",
+    "recharts": "https://aistudiocdn.com/recharts@^3.5.0"
+  }
+}
+</script>
+</head>
   <body class="bg-slate-50 text-slate-900 antialiased selection:bg-primary-100 selection:text-primary-900">
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>

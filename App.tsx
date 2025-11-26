@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useContext, createContext } from 'react';
 import { Login } from './pages/Login';
 import { Layout } from './components/Layout';
@@ -38,7 +37,7 @@ export function HashRouter({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function Routes({ children }: { children: React.ReactNode }) {
+export function Routes({ children }: { children?: React.ReactNode }) {
   const { path } = useContext(RouterContext);
   let match: React.ReactNode = null;
   let fallback: React.ReactNode = null;
@@ -58,7 +57,7 @@ export function Routes({ children }: { children: React.ReactNode }) {
   return <>{match || fallback}</>;
 }
 
-export function Route({ path, element }: { path: string, element: React.ReactNode }) {
+export function Route({ path, element }: { path: string, element: React.ReactNode; children?: React.ReactNode }) {
   return null;
 }
 
