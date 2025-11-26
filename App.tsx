@@ -57,7 +57,7 @@ export function Routes({ children }: { children: React.ReactNode }) {
   return <>{match || fallback}</>;
 }
 
-export function Route({ path, element }: { path: string, element: React.ReactNode; children?: React.ReactNode }) {
+export function Route(props: { path: string, element: React.ReactNode; children?: React.ReactNode }) {
   return null;
 }
 
