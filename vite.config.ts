@@ -16,7 +16,9 @@ export default defineConfig(({ mode }) => {
       'process.env.ADMIN_PASSWORD': JSON.stringify(env.ADMIN_PASSWORD),
       'process.env.ENCRYPTION_KEY': JSON.stringify(env.ENCRYPTION_KEY),
       // Fallback object to prevent 'process is not defined' errors
-      'process.env': {}
+      'process.env': {},
+      // Polyfill global for libraries that expect Node.js environment
+      'global': 'window',
     },
     build: {
       target: 'es2020',
