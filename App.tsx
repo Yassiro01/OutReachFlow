@@ -57,8 +57,8 @@ export function Routes({ children }: { children: React.ReactNode }) {
   return <>{match || fallback}</>;
 }
 
-// Fix: Removed 'children' from props as it is not used and was causing type errors
-export function Route(props: { path: string, element: React.ReactNode }) {
+// Fix: Added optional children to props to satisfy TypeScript requirements
+export function Route(props: { path: string, element: React.ReactNode, children?: React.ReactNode }) {
   return null;
 }
 
