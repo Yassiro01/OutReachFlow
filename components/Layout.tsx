@@ -1,23 +1,12 @@
-
 import React, { useEffect, useState } from 'react';
 import { 
-  Link, 
-  useLocation, 
-  useNavigate 
+  Link, useLocation, useNavigate 
 } from '../App';
 import { 
-  LayoutDashboard, 
-  Search, 
-  Users, 
-  Send, 
-  Settings, 
-  LogOut,
-  Menu,
-  X,
-  ChevronRight,
-  ShieldAlert
+  LayoutDashboard, Search, Users, Send, Settings, LogOut,
+  Menu, X, ChevronRight, ShieldAlert
 } from 'lucide-react';
-import { logout, getCurrentUser } from '../services/mockBackend';
+import { logout, getCurrentUser } from '../services/api';
 import { User } from '../types';
 
 const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (v: boolean) => void }) => {
@@ -44,7 +33,6 @@ const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (v: boolea
 
   return (
     <>
-      {/* Mobile Overlay with Blur */}
       <div 
         className={`fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-20 md:hidden transition-opacity duration-300 ${
           isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
@@ -52,13 +40,11 @@ const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (v: boolea
         onClick={() => setIsOpen(false)}
       />
 
-      {/* Sidebar Container */}
       <aside 
         className={`fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-slate-200 transform transition-transform duration-300 cubic-bezier(0.4, 0, 0.2, 1) md:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Logo Area */}
         <div className="flex items-center justify-between h-16 px-6 border-b border-slate-100">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-primary-600 rounded-lg shadow-lg shadow-primary-500/30 flex items-center justify-center text-white font-bold text-xl">
@@ -74,7 +60,6 @@ const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (v: boolea
           </button>
         </div>
 
-        {/* Navigation Links */}
         <nav className="p-4 space-y-1">
           {links.map((link) => {
             const Icon = link.icon;
@@ -100,7 +85,6 @@ const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (v: boolea
             );
           })}
 
-          {/* Admin Link - Only visible to Admins */}
           {user?.role === 'admin' && (
             <>
               <div className="my-2 border-t border-slate-100 mx-2"></div>
@@ -123,7 +107,6 @@ const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (v: boolea
           )}
         </nav>
 
-        {/* Footer Area */}
         <div className="absolute bottom-0 w-full p-4 border-t border-slate-100 bg-slate-50/50">
           <button 
             onClick={handleLogout}
@@ -146,7 +129,6 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setSidebarOpen} />
       
       <div className="flex-1 md:ml-64 flex flex-col min-h-screen transition-all duration-300">
-        {/* Mobile Header */}
         <header className="bg-white/80 backdrop-blur-md h-16 border-b border-slate-200 flex items-center px-4 md:hidden sticky top-0 z-10 transition-colors">
           <button 
             onClick={() => setSidebarOpen(true)} 
@@ -157,7 +139,6 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
           <span className="ml-3 font-bold text-slate-800 text-lg">OutreachFlow</span>
         </header>
 
-        {/* Main Content Area */}
         <main className="flex-1 p-4 md:p-8 overflow-y-auto overflow-x-hidden">
           <div className="max-w-7xl mx-auto animate-fade-in">
             {children}

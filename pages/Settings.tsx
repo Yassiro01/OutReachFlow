@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Server, ShieldCheck, Mail, Loader2 } from 'lucide-react';
-import { getSmtpConfig, saveSmtpConfig } from '../services/mockBackend';
+import { getSmtpConfig, saveSmtpConfig } from '../services/api';
 import { SmtpConfig } from '../types';
 
 export const Settings = () => {
@@ -11,8 +11,7 @@ export const Settings = () => {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const loaded = getSmtpConfig();
-    setConfig({ ...loaded, password: '' }); 
+    getSmtpConfig().then(c => setConfig({ ...c, password: '' }));
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,9 +24,13 @@ export const Settings = () => {
     setIsSaving(true);
     setMessage('');
     
-    await saveSmtpConfig(config);
+    try {
+      await saveSmtpConfig(config);
+      setMessage('Settings saved successfully!');
+    } catch (e) {
+      setMessage('Error saving settings.');
+    }
     
-    setMessage('Settings saved successfully!');
     setIsSaving(false);
     setTimeout(() => setMessage(''), 3000);
   };
@@ -46,7 +49,6 @@ export const Settings = () => {
 
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-slide-up">
         <div className="p-8 space-y-8">
-          {/* Server Details */}
           <div className="space-y-4">
             <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4">Server Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -73,7 +75,6 @@ export const Settings = () => {
 
           <hr className="border-slate-100" />
 
-          {/* Authentication */}
           <div className="space-y-4">
              <div className="flex items-center gap-2 mb-4">
                <ShieldCheck size={18} className="text-primary-500" />
@@ -105,7 +106,6 @@ export const Settings = () => {
 
           <hr className="border-slate-100" />
 
-          {/* Sender Info */}
           <div className="space-y-4">
              <div className="flex items-center gap-2 mb-4">
                <Mail size={18} className="text-primary-500" />

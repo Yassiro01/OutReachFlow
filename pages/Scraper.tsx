@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from '../App';
-import { Play, Square, Loader2, Download, CheckCircle, AlertTriangle, FileText, Globe, Trash2, Terminal, Plus, X } from 'lucide-react';
-import { scrapeWebsite, addContacts } from '../services/mockBackend';
+import { Play, Loader2, Download, CheckCircle, AlertTriangle, Terminal, Globe, Trash2, MapPin, X } from 'lucide-react';
+import { scrapeWebsite, addContacts, scrapeGoogleMaps } from '../services/api';
 import { Contact } from '../types';
 
 interface ScrapeLog {
@@ -20,13 +20,19 @@ export const Scraper = () => {
   const [progress, setProgress] = useState({ current: 0, total: 0, found: 0 });
   const [saved, setSaved] = useState(false);
   const shouldStopRef = useRef(false);
+  
+  // Google Maps State
+  const [showMapsModal, setShowMapsModal] = useState(false);
+  const [mapsUrl, setMapsUrl] = useState('');
+  const [isMapsScraping, setIsMapsScraping] = useState(false);
+  const [mapsStatus, setMapsStatus] = useState('');
 
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   const handleStartScrape = async () => {
     const urls = input.split('\n')
       .map(u => u.trim())
-      .filter(u => u.length > 0 && (u.includes('.') || u.includes('localhost')));
+      .filter(u => u.length > 0);
 
     if (urls.length === 0) {
       alert("Please enter at least one valid URL.");
@@ -57,7 +63,7 @@ export const Scraper = () => {
       ));
 
       try {
-        if (i > 0) await delay(1500); 
+        if (i > 0) await delay(1000); 
         const emails = await scrapeWebsite(currentLog.url);
         totalEmailsFound += emails.length;
         setLogs(prev => prev.map(log => 
@@ -109,25 +115,113 @@ export const Scraper = () => {
     setSaved(true);
     setTimeout(() => navigate('/contacts'), 1500);
   };
-
-  const successCount = logs.filter(l => l.status === 'success').length;
-  const failedCount = logs.filter(l => l.status === 'failed').length;
+  
+  const handleMapsScrape = async () => {
+    if (!mapsUrl) return;
+    setIsMapsScraping(true);
+    setMapsStatus('Initializing Puppeteer on backend...');
+    
+    try {
+      const urls = await scrapeGoogleMaps(mapsUrl, (status) => setMapsStatus(status));
+      
+      // Merge results
+      const currentUrls = input.split('\n').map(u => u.trim()).filter(Boolean);
+      const newUrls = [...new Set([...currentUrls, ...urls])]; // Remove duplicates
+      
+      setInput(newUrls.join('\n'));
+      setMapsStatus(`Success! Found ${urls.length} websites.`);
+      setTimeout(() => {
+        setShowMapsModal(false);
+        setIsMapsScraping(false);
+        setMapsUrl('');
+        setMapsStatus('');
+      }, 2000);
+    } catch (e: any) {
+      setMapsStatus('Error: ' + e.message);
+      setIsMapsScraping(false);
+    }
+  };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-8">
+    <div className="max-w-6xl mx-auto space-y-8 pb-8 relative">
+      {/* Google Maps Modal */}
+      {showMapsModal && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-slate-200 animate-slide-up overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                <MapPin className="text-red-500" size={20} /> Google Maps Scraper
+              </h3>
+              {!isMapsScraping && (
+                <button onClick={() => setShowMapsModal(false)} className="text-slate-400 hover:text-slate-600">
+                  <X size={20} />
+                </button>
+              )}
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">Maps Search URL</label>
+                <input 
+                  type="text" 
+                  value={mapsUrl}
+                  onChange={(e) => setMapsUrl(e.target.value)}
+                  placeholder="https://www.google.com/maps/search/..."
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all text-sm"
+                  disabled={isMapsScraping}
+                />
+                <p className="text-xs text-slate-500">
+                  We will launch a headless browser to scroll the results and extract website links.
+                </p>
+              </div>
+              
+              {mapsStatus && (
+                <div className={`text-sm p-3 rounded-lg flex items-center gap-2 ${
+                  mapsStatus.includes('Error') 
+                    ? 'bg-red-50 text-red-600' 
+                    : mapsStatus.includes('Success') 
+                      ? 'bg-green-50 text-green-600'
+                      : 'bg-blue-50 text-blue-600'
+                }`}>
+                  {isMapsScraping && <Loader2 size={16} className="animate-spin" />}
+                  {mapsStatus}
+                </div>
+              )}
+
+              <button 
+                onClick={handleMapsScrape}
+                disabled={isMapsScraping || !mapsUrl}
+                className="w-full py-3 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-all shadow-lg shadow-primary-600/20 flex items-center justify-center gap-2"
+              >
+                {isMapsScraping ? 'Extracting...' : 'Start Extraction'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Email Scraper</h1>
           <p className="text-slate-500 mt-1">Extract leads from websites efficiently.</p>
         </div>
-        {logs.length > 0 && !isScraping && (
+        <div className="flex gap-2">
           <button 
-            onClick={handleClear}
-            className="px-4 py-2 text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-2 text-sm font-medium transition-colors"
+            onClick={() => setShowMapsModal(true)}
+            disabled={isScraping}
+            className="px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 flex items-center gap-2 text-sm font-semibold transition-all shadow-sm"
           >
-            <Trash2 size={16} /> Clear Logs
+            <MapPin size={16} className="text-red-500" /> Google Maps
           </button>
-        )}
+          
+          {logs.length > 0 && !isScraping && (
+            <button 
+              onClick={handleClear}
+              className="px-4 py-2 text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-2 text-sm font-medium transition-colors"
+            >
+              <Trash2 size={16} /> Clear Logs
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

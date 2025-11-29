@@ -20,6 +20,15 @@ export default defineConfig(({ mode }) => {
       // Polyfill global for libraries that expect Node.js environment
       'global': 'window',
     },
+    server: {
+      proxy: {
+        '/api': {
+          target: 'http://127.0.0.1:3001', // Use 127.0.0.1 instead of localhost to avoid IPv6 issues
+          changeOrigin: true,
+          secure: false,
+        }
+      }
+    },
     build: {
       target: 'es2020',
       outDir: 'dist',

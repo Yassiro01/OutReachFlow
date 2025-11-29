@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { Upload, Download, Trash2, Plus, Search, MoreHorizontal, FileSpreadsheet, Check } from 'lucide-react';
+import { Upload, Download, Trash2, Plus, Search, Check } from 'lucide-react';
 import { Contact } from '../types';
-import { getContacts, addContacts } from '../services/mockBackend';
+import { getContacts, addContacts } from '../services/api';
 
 export const Contacts = () => {
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -10,8 +9,13 @@ export const Contacts = () => {
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const fetchContacts = async () => {
+    const data = await getContacts();
+    setContacts(data);
+  };
+
   useEffect(() => {
-    setContacts(getContacts());
+    fetchContacts();
   }, []);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,8 +30,6 @@ export const Contacts = () => {
       const lines = text.split('\n');
       const newContacts: Contact[] = [];
       
-      // Basic CSV parsing (skipping header)
-      // Expected format: email, firstName, lastName, company
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
@@ -51,7 +53,7 @@ export const Contacts = () => {
 
       if (newContacts.length > 0) {
         await addContacts(newContacts);
-        setContacts(getContacts());
+        await fetchContacts();
         alert(`Successfully imported ${newContacts.length} contacts.`);
       } else {
         alert('No valid contacts found in CSV. Please ensure the first column is Email.');
@@ -114,7 +116,6 @@ export const Contacts = () => {
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-        {/* Toolbar */}
         <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-white">
           <div className="relative max-w-sm w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -131,7 +132,6 @@ export const Contacts = () => {
           </div>
         </div>
         
-        {/* Table */}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-100">
             <thead className="bg-slate-50">

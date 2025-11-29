@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
-import { Send, Wand2, Play, Pause, Plus, Loader2, Trash2, Clock, Mail, ArrowDown, ChevronRight, FileEdit, Calendar, ArrowLeft, Download, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react';
+import { Send, Wand2, Plus, Loader2, Trash2, Clock, Mail, ArrowDown, ChevronRight, Calendar, ArrowLeft, Download, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react';
 import { Campaign, CampaignStep, EmailLog } from '../types';
-import { getContacts, getCampaigns, saveCampaign, getSmtpConfig, getEmailLogs } from '../services/mockBackend';
+import { getContacts, getCampaigns, saveCampaign, getSmtpConfig, getEmailLogs } from '../services/api';
 import { generateEmailContent } from '../services/gemini';
 
 export const Campaigns = () => {
@@ -24,16 +23,19 @@ export const Campaigns = () => {
   const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
-    setCampaigns(getCampaigns());
+    loadCampaigns();
   }, [view]);
+
+  const loadCampaigns = async () => {
+    const data = await getCampaigns();
+    setCampaigns(data);
+  };
 
   useEffect(() => {
     if (selectedCampaign) {
-      const allLogs = getEmailLogs(selectedCampaign.id);
-      setLogs(allLogs);
-      // Update selected campaign object with latest stats
-      const updated = getCampaigns().find(c => c.id === selectedCampaign.id);
-      if (updated) setSelectedCampaign(updated);
+      getEmailLogs(selectedCampaign.id).then(setLogs);
+      // Refresh list to update counts
+      loadCampaigns();
     }
   }, [selectedCampaign?.id]);
 
@@ -80,29 +82,33 @@ export const Campaigns = () => {
   };
 
   const handleCreate = async () => {
-    const smtp = getSmtpConfig();
-    if (!smtp.isConfigured) {
-      alert("Please configure SMTP settings before creating a campaign.");
-      return;
+    try {
+      const smtp = await getSmtpConfig();
+      if (!smtp.isConfigured) {
+        alert("Please configure SMTP settings before creating a campaign.");
+        return;
+      }
+      if (!name || steps.some(s => !s.body)) {
+        alert("Please fill in campaign name and email content for all steps.");
+        return;
+      }
+      const contacts = await getContacts();
+      const newCampaign: Campaign = {
+        id: Math.random().toString(36).substr(2, 9),
+        name,
+        steps,
+        status: 'running',
+        sentCount: 0,
+        openCount: 0,
+        totalContacts: contacts.length,
+        createdAt: new Date().toISOString()
+      };
+      await saveCampaign(newCampaign);
+      setView('list');
+      resetForm();
+    } catch (e: any) {
+      alert(e.message);
     }
-    if (!name || steps.some(s => !s.body)) {
-      alert("Please fill in campaign name and email content for all steps.");
-      return;
-    }
-    const contacts = getContacts();
-    const newCampaign: Campaign = {
-      id: Math.random().toString(36).substr(2, 9),
-      name,
-      steps,
-      status: 'running',
-      sentCount: 0,
-      openCount: 0,
-      totalContacts: contacts.length,
-      createdAt: new Date().toISOString()
-    };
-    await saveCampaign(newCampaign);
-    setView('list');
-    resetForm();
   };
 
   const resetForm = () => {
@@ -148,7 +154,6 @@ export const Campaigns = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Timeline Column */}
             <div className="lg:col-span-2 space-y-6">
                <div className="relative pl-6 space-y-8">
                  <div className="absolute left-[35px] top-6 bottom-6 w-0.5 bg-slate-200"></div>

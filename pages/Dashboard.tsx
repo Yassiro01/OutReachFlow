@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Area, AreaChart } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { Activity, Mail, Users, AlertCircle, TrendingUp, TrendingDown } from 'lucide-react';
-import { getCampaigns, getContacts, simulateCampaignProgress } from '../services/mockBackend';
+import { getCampaigns, getContacts } from '../services/api';
 
 export const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -14,19 +14,25 @@ export const Dashboard = () => {
   const [chartData, setChartData] = useState<any[]>([]);
 
   useEffect(() => {
-    simulateCampaignProgress();
-    const contacts = getContacts();
-    const campaigns = getCampaigns();
-    
-    const sent = campaigns.reduce((acc, curr) => acc + curr.sentCount, 0);
-    const opens = campaigns.reduce((acc, curr) => acc + curr.openCount, 0);
-    
-    setStats({
-      totalContacts: contacts.length,
-      activeCampaigns: campaigns.filter(c => c.status === 'running').length,
-      emailsSent: sent,
-      avgOpenRate: sent > 0 ? Math.round((opens / sent) * 100) : 0
-    });
+    const fetchData = async () => {
+      try {
+        const [contacts, campaigns] = await Promise.all([getContacts(), getCampaigns()]);
+        
+        const sent = campaigns.reduce((acc, curr) => acc + curr.sentCount, 0);
+        const opens = campaigns.reduce((acc, curr) => acc + curr.openCount, 0);
+        
+        setStats({
+          totalContacts: contacts.length,
+          activeCampaigns: campaigns.filter(c => c.status === 'running').length,
+          emailsSent: sent,
+          avgOpenRate: sent > 0 ? Math.round((opens / sent) * 100) : 0
+        });
+      } catch (e) {
+        console.error("Failed to load dashboard data", e);
+      }
+    };
+
+    fetchData();
 
     setChartData([
       { name: 'Mon', sent: 120, opened: 45 },
@@ -67,9 +73,6 @@ export const Dashboard = () => {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Overview</h1>
           <p className="text-slate-500 mt-1">Track your campaign performance and contact growth.</p>
         </div>
-        <div className="text-sm bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm text-slate-600">
-          Last updated: <span className="font-semibold text-slate-900">Just now</span>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -80,14 +83,9 @@ export const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Bar Chart */}
         <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-lg font-bold text-slate-800">Email Performance</h3>
-            <select className="text-sm border-none bg-slate-50 rounded-lg px-3 py-1.5 text-slate-600 focus:ring-0 cursor-pointer">
-              <option>Last 7 Days</option>
-              <option>Last 30 Days</option>
-            </select>
           </div>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -106,7 +104,6 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        {/* Line Chart */}
         <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
            <div className="flex items-center justify-between mb-8">
             <h3 className="text-lg font-bold text-slate-800">Engagement Timeline</h3>

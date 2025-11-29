@@ -1,25 +1,11 @@
-
 import React, { useEffect, useState } from 'react';
 import { 
-  Users, 
-  Server, 
-  Activity, 
-  Shield, 
-  Ban, 
-  CheckCircle, 
-  Clock, 
-  Terminal, 
-  AlertTriangle, 
-  Search,
-  RefreshCw,
-  Cpu
+  Users, Server, Activity, Shield, Ban, CheckCircle, Terminal, 
+  AlertTriangle, Search, RefreshCw, Cpu
 } from 'lucide-react';
 import { 
-  getSystemStats, 
-  getAllUsers, 
-  toggleUserStatus, 
-  getSystemLogs 
-} from '../services/mockBackend';
+  getSystemStats, getAllUsers, toggleUserStatus, getSystemLogs 
+} from '../services/api';
 import { SystemStats, AdminLog } from '../types';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -31,7 +17,6 @@ export const AdminPanel = () => {
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Load Data
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -56,7 +41,7 @@ export const AdminPanel = () => {
   const handleToggleStatus = async (userId: string) => {
     try {
       await toggleUserStatus(userId);
-      setRefreshKey(p => p + 1); // Reload data
+      setRefreshKey(p => p + 1);
     } catch (e: any) {
       alert(e.message);
     }
@@ -79,7 +64,6 @@ export const AdminPanel = () => {
 
   return (
     <div className="space-y-6 pb-8">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -115,94 +99,17 @@ export const AdminPanel = () => {
         </div>
       ) : (
         <>
-          {/* Dashboard Tab */}
           {tab === 'dashboard' && stats && (
             <div className="space-y-6 animate-fade-in">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard 
-                  title="Total Users" 
-                  value={stats.totalUsers} 
-                  sub={`${stats.activeUsers} Active`}
-                  icon={Users} 
-                  color="bg-blue-500" 
-                />
-                <StatCard 
-                  title="System Load" 
-                  value={`${stats.systemHealth.cpuUsage}%`} 
-                  sub={`${stats.systemHealth.memoryUsage}% Memory Used`}
-                  icon={Cpu} 
-                  color="bg-purple-500" 
-                />
-                <StatCard 
-                  title="Queue Depth" 
-                  value={stats.systemHealth.queueLength} 
-                  sub="Jobs Pending"
-                  icon={Server} 
-                  color="bg-amber-500" 
-                />
-                <StatCard 
-                  title="Emails Processed" 
-                  value={stats.totalEmailsSent.toLocaleString()} 
-                  sub="Lifetime Volume"
-                  icon={CheckCircle} 
-                  color="bg-green-500" 
-                />
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                 {/* Performance Chart Placeholder */}
-                 <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                   <h3 className="text-lg font-bold text-slate-900 mb-6">Server Load (24h)</h3>
-                   <div className="h-64">
-                     <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={[
-                          { name: '00:00', load: 20 }, { name: '04:00', load: 15 }, 
-                          { name: '08:00', load: 45 }, { name: '12:00', load: 70 },
-                          { name: '16:00', load: 60 }, { name: '20:00', load: 35 },
-                          { name: '23:59', load: 25 }
-                        ]}>
-                          <defs>
-                            <linearGradient id="colorLoad" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.1}/>
-                              <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
-                          <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
-                          <Tooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
-                          <Area type="monotone" dataKey="load" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorLoad)" />
-                        </AreaChart>
-                     </ResponsiveContainer>
-                   </div>
-                 </div>
-
-                 {/* System Health List */}
-                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 className="text-lg font-bold text-slate-900 mb-4">Node Health</h3>
-                    <div className="space-y-4">
-                      {[
-                        { name: 'Worker Node 1', status: 'Healthy', ping: '24ms' },
-                        { name: 'Worker Node 2', status: 'Healthy', ping: '31ms' },
-                        { name: 'Database Primary', status: 'Healthy', ping: '12ms' },
-                        { name: 'Redis Cache', status: 'Healthy', ping: '4ms' },
-                        { name: 'Scraper Cluster', status: 'Busy', ping: '120ms', warn: true },
-                      ].map((node, i) => (
-                        <div key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-2 h-2 rounded-full ${node.warn ? 'bg-amber-500 animate-pulse' : 'bg-green-500'}`}></div>
-                            <span className="text-sm font-medium text-slate-700">{node.name}</span>
-                          </div>
-                          <span className={`text-xs font-mono ${node.warn ? 'text-amber-600' : 'text-slate-400'}`}>{node.ping}</span>
-                        </div>
-                      ))}
-                    </div>
-                 </div>
+                <StatCard title="Total Users" value={stats.totalUsers} sub={`${stats.activeUsers} Active`} icon={Users} color="bg-blue-500" />
+                <StatCard title="System Load" value={`${stats.systemHealth.cpuUsage}%`} sub={`${stats.systemHealth.memoryUsage}% Memory Used`} icon={Cpu} color="bg-purple-500" />
+                <StatCard title="Queue Depth" value={stats.systemHealth.queueLength} sub="Jobs Pending" icon={Server} color="bg-amber-500" />
+                <StatCard title="Emails Processed" value={stats.totalEmailsSent.toLocaleString()} sub="Lifetime Volume" icon={CheckCircle} color="bg-green-500" />
               </div>
             </div>
           )}
 
-          {/* Users Tab */}
           {tab === 'users' && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-slide-up">
               <div className="p-4 border-b border-slate-100 flex items-center justify-between">
@@ -218,7 +125,6 @@ export const AdminPanel = () => {
                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">User</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Role</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Joined</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Usage</th>
                     <th className="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Actions</th>
                   </tr>
                 </thead>
@@ -243,13 +149,7 @@ export const AdminPanel = () => {
                          }
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-500">
-                        {new Date(u.joinedAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-slate-500">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-xs">Campaigns: <b>{u.campaignsCount}</b></span>
-                          <span className="text-xs">Emails: <b>{u.emailsSent}</b></span>
-                        </div>
+                        {new Date(u.createdAt || u.joinedAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <button 
@@ -270,37 +170,15 @@ export const AdminPanel = () => {
             </div>
           )}
 
-          {/* Logs Tab */}
           {tab === 'logs' && (
             <div className="bg-slate-900 rounded-2xl border border-slate-800 shadow-xl overflow-hidden animate-slide-up flex flex-col min-h-[500px]">
               <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-slate-300 font-mono text-sm">
                   <Terminal size={16} /> System Event Stream
                 </div>
-                <div className="flex gap-2">
-                   <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
-                   <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500/50"></div>
-                   <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
-                </div>
               </div>
               <div className="flex-1 p-4 overflow-y-auto space-y-2 font-mono text-sm max-h-[600px]">
-                {logs.length === 0 ? (
-                  <div className="text-slate-600 text-center py-10">-- End of Log Stream --</div>
-                ) : (
-                  logs.map((log) => (
-                     <div key={log.id} className="flex gap-4 p-2 hover:bg-white/5 rounded transition-colors group">
-                        <div className="text-slate-500 shrink-0 w-36">{new Date(log.timestamp).toLocaleTimeString()}</div>
-                        <div className={`shrink-0 w-20 font-bold ${
-                           log.status === 'success' ? 'text-green-400' :
-                           log.status === 'error' ? 'text-red-400' : 'text-amber-400'
-                        }`}>
-                           [{log.status.toUpperCase()}]
-                        </div>
-                        <div className="text-slate-300 flex-1 truncate">{log.action}</div>
-                        <div className="text-slate-600 text-xs shrink-0 group-hover:text-slate-400">{log.userEmail}</div>
-                     </div>
-                  ))
-                )}
+                <div className="text-slate-600 text-center py-10">-- Backend Log Stream Not Connected --</div>
               </div>
             </div>
           )}

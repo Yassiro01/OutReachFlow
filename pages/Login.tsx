@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from '../App';
-import { mockLogin, mockRegister } from '../services/mockBackend';
-import { Mail, Lock, ArrowRight, Loader2, UserPlus, LogIn, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { login, register } from '../services/api';
+import { Mail, Lock, ArrowRight, Loader2, UserPlus, AlertCircle } from 'lucide-react';
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -16,21 +16,23 @@ export const Login = () => {
     setLoading(true);
     setError('');
 
-    if (!email.toLowerCase().endsWith('@gmail.com')) {
-      setError('Please use a valid @gmail.com address');
+    if (!email.toLowerCase().includes('@')) {
+      setError('Please use a valid email address');
       setLoading(false);
       return;
     }
     
     try {
       if (isRegistering) {
-        await mockRegister(email, password);
+        await register(email, password);
       } else {
-        await mockLogin(email, password);
+        await login(email, password);
       }
+      // Successful auth redirects to dashboard
       navigate('/');
     } catch (err: any) {
-      setError(err.message || "Authentication failed");
+      console.error("Auth Error:", err);
+      setError(err.message || "Authentication failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -46,7 +48,6 @@ export const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-slate-50 to-white px-4">
       <div className="max-w-[420px] w-full animate-slide-up">
-        {/* Brand Header */}
         <div className="text-center mb-8">
           <div className="w-14 h-14 bg-gradient-to-tr from-primary-600 to-primary-500 rounded-2xl shadow-xl shadow-primary-500/20 flex items-center justify-center text-white font-bold text-2xl mx-auto mb-6 transform rotate-3 hover:rotate-6 transition-transform duration-300">
             O
@@ -61,7 +62,6 @@ export const Login = () => {
           </p>
         </div>
 
-        {/* Card */}
         <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/60 p-8 border border-slate-100">
           {error && (
             <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl text-sm border border-red-100 flex items-start gap-3 animate-fade-in">
@@ -72,7 +72,7 @@ export const Login = () => {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
-              <label className="block text-sm font-semibold text-slate-700 ml-1">Gmail Address</label>
+              <label className="block text-sm font-semibold text-slate-700 ml-1">Email Address</label>
               <div className="relative group">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={20} />
                 <input
@@ -80,7 +80,7 @@ export const Login = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all placeholder:text-slate-400 text-slate-900"
-                  placeholder="name@gmail.com"
+                  placeholder="name@company.com"
                   required
                 />
               </div>

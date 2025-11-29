@@ -7,12 +7,15 @@ import { Contacts } from './pages/Contacts';
 import { Campaigns } from './pages/Campaigns';
 import { Settings } from './pages/Settings';
 import { AdminPanel } from './pages/AdminPanel';
-import { getCurrentUser } from './services/mockBackend';
+import { getCurrentUser } from './services/api';
 
-// Custom Router Implementation to replace missing react-router-dom
 const RouterContext = createContext<{ path: string; navigate: (p: string) => void }>({ path: '/', navigate: () => {} });
 
-export function HashRouter({ children }: { children: React.ReactNode }) {
+interface HashRouterProps {
+  children: React.ReactNode;
+}
+
+export function HashRouter({ children }: HashRouterProps) {
   const [path, setPath] = useState(window.location.hash.slice(1) || '/');
 
   useEffect(() => {
@@ -21,7 +24,6 @@ export function HashRouter({ children }: { children: React.ReactNode }) {
       setPath(currentPath || '/');
     };
     window.addEventListener('hashchange', handler);
-    // Initialize if needed
     if (!window.location.hash) window.location.hash = '#/';
     return () => window.removeEventListener('hashchange', handler);
   }, []);
@@ -37,7 +39,11 @@ export function HashRouter({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function Routes({ children }: { children: React.ReactNode }) {
+interface RoutesProps {
+  children: React.ReactNode;
+}
+
+export function Routes({ children }: RoutesProps) {
   const { path } = useContext(RouterContext);
   let match: React.ReactNode = null;
   let fallback: React.ReactNode = null;
@@ -57,12 +63,23 @@ export function Routes({ children }: { children: React.ReactNode }) {
   return <>{match || fallback}</>;
 }
 
-// Fix: Added optional children to props to satisfy TypeScript requirements
-export function Route(props: { path: string, element: React.ReactNode, children?: React.ReactNode }) {
+interface RouteProps {
+  path: string;
+  element: React.ReactNode;
+  children?: React.ReactNode;
+}
+
+export function Route(props: RouteProps) {
   return null;
 }
 
-export function Navigate({ to, replace }: { to: string, replace?: boolean }) {
+interface NavigateProps {
+  to: string;
+  replace?: boolean;
+  children?: React.ReactNode;
+}
+
+export function Navigate({ to, replace, children }: NavigateProps) {
   const { navigate } = useContext(RouterContext);
   useEffect(() => {
     navigate(to);
@@ -97,10 +114,10 @@ export function Link({ to, children, className, onClick }: any) {
   );
 }
 
-// Wrapper for protected routes
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   const user = getCurrentUser();
-  if (!user) {
+  // Ensure user object has an ID to confirm it's valid, not just {}
+  if (!user || !user.id) {
     return <Navigate to="/login" replace />;
   }
   
@@ -111,11 +128,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// Wrapper for Admin Routes
-const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+const AdminRoute = ({ children }: { children?: React.ReactNode }) => {
   const user = getCurrentUser();
   
-  if (!user) {
+  if (!user || !user.id) {
     return <Navigate to="/login" replace />;
   }
   
