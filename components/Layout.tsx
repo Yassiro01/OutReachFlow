@@ -1,27 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { 
   Link, useLocation, useNavigate 
 } from '../App';
 import { 
-  LayoutDashboard, Search, Users, Send, Settings, LogOut,
+  LayoutDashboard, Search, Users, Send, Settings,
   Menu, X, ChevronRight, ShieldAlert
 } from 'lucide-react';
-import { logout, getCurrentUser } from '../services/api';
-import { User } from '../types';
 
 const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (v: boolean) => void }) => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    setUser(getCurrentUser());
-  }, []);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
 
   const links = [
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -85,37 +72,23 @@ const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (v: boolea
             );
           })}
 
-          {user?.role === 'admin' && (
-            <>
-              <div className="my-2 border-t border-slate-100 mx-2"></div>
-              <Link
-                to="/admin"
-                onClick={() => setIsOpen(false)}
-                className={`group flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  location.pathname === '/admin'
-                    ? 'bg-slate-800 text-white shadow-md shadow-slate-900/20' 
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <ShieldAlert size={20} className={`transition-colors ${location.pathname === '/admin' ? 'text-rose-400' : 'text-slate-400 group-hover:text-slate-600'}`} />
-                  Admin Panel
-                </div>
-                {location.pathname === '/admin' && <div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>}
-              </Link>
-            </>
-          )}
-        </nav>
-
-        <div className="absolute bottom-0 w-full p-4 border-t border-slate-100 bg-slate-50/50">
-          <button 
-            onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-4 py-2.5 text-sm font-medium text-slate-600 rounded-lg hover:bg-red-50 hover:text-red-600 transition-all duration-200 group"
+          <div className="my-2 border-t border-slate-100 mx-2"></div>
+          <Link
+            to="/admin"
+            onClick={() => setIsOpen(false)}
+            className={`group flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+              location.pathname === '/admin'
+                ? 'bg-slate-800 text-white shadow-md shadow-slate-900/20' 
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+            }`}
           >
-            <LogOut size={18} className="text-slate-400 group-hover:text-red-500 transition-colors" />
-            Sign Out
-          </button>
-        </div>
+            <div className="flex items-center gap-3">
+              <ShieldAlert size={20} className={`transition-colors ${location.pathname === '/admin' ? 'text-rose-400' : 'text-slate-400 group-hover:text-slate-600'}`} />
+              Admin Panel
+            </div>
+            {location.pathname === '/admin' && <div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>}
+          </Link>
+        </nav>
       </aside>
     </>
   );

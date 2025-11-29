@@ -4,15 +4,12 @@ import fs from 'fs';
 import path from 'path';
 import puppeteer from 'puppeteer';
 import { fileURLToPath } from 'url';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = 3001;
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-123'; // In production, use .env
 
 // Middleware
 app.use(cors());
@@ -63,114 +60,6 @@ const saveDb = (data) => {
 };
 
 // --- ROUTES ---
-
-// Auth: Login
-app.post('/api/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const db = getDb();
-    
-    // Admin backdoor check
-    if (process.env.ADMIN_EMAIL && email === process.env.ADMIN_EMAIL) {
-      if (password === process.env.ADMIN_PASSWORD) {
-        const token = jwt.sign({ id: 'admin_root', role: 'admin' }, JWT_SECRET, { expiresIn: '24h' });
-        return res.json({
-          success: true,
-          token,
-          user: {
-            id: 'admin_root',
-            email,
-            name: 'System Admin',
-            token, // Legacy support
-            role: 'admin',
-            status: 'active'
-          }
-        });
-      }
-    }
-
-    const user = db.users ? db.users.find(u => u.email === email) : null;
-    
-    if (!user) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
-    }
-
-    if (user.status === 'suspended') {
-      return res.status(403).json({ success: false, message: 'Account suspended' });
-    }
-
-    // Compare hashed password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
-    }
-
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
-
-    res.json({
-      success: true,
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        token, // Legacy support for frontend that might look for user.token
-        role: user.role,
-        status: user.status
-      }
-    });
-  } catch (e) {
-    console.error("Login Error:", e);
-    res.status(500).json({ success: false, message: 'Internal server error' });
-  }
-});
-
-// Auth: Register
-app.post('/api/register', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const db = getDb();
-
-    if (!db.users) db.users = [];
-
-    if (db.users.find(u => u.email === email)) {
-      return res.status(400).json({ success: false, message: 'User already exists' });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newUser = {
-      id: 'u_' + Date.now(),
-      email,
-      password: hashedPassword,
-      name: email.split('@')[0],
-      role: 'user',
-      status: 'active',
-      createdAt: new Date().toISOString()
-    };
-
-    db.users.push(newUser);
-    saveDb(db);
-
-    const token = jwt.sign({ id: newUser.id, email: newUser.email, role: newUser.role }, JWT_SECRET, { expiresIn: '24h' });
-
-    res.json({
-      success: true,
-      token,
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-        name: newUser.name,
-        token,
-        role: newUser.role,
-        status: newUser.status
-      }
-    });
-  } catch (e) {
-    console.error("Register Error:", e);
-    res.status(500).json({ success: false, message: 'Internal server error' });
-  }
-});
 
 // Contacts: Get
 app.get('/api/contacts', (req, res) => {

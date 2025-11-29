@@ -1,4 +1,4 @@
-import { User, Contact, Campaign, SmtpConfig, EmailLog, SystemStats, AdminLog } from '../types';
+import { Contact, Campaign, SmtpConfig, EmailLog, SystemStats, AdminLog } from '../types';
 
 // Use relative path so Vite proxy handles the connection to backend
 const API_URL = '/api';
@@ -62,85 +62,38 @@ const handleResponse = async (res: Response) => {
   }
 };
 
-const getAuthHeaders = () => {
-  const userStr = localStorage.getItem('outreach_user');
-  const user = userStr ? JSON.parse(userStr) : null;
-  return user ? { 'Authorization': `Bearer ${user.token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
-};
-
-// --- Auth ---
-
-export const login = async (email: string, password: string): Promise<User> => {
-  const data = await fetchWithTimeout(`${API_URL}/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password })
-  }).then(handleResponse);
-  
-  if (data.success && data.user) {
-    localStorage.setItem('outreach_user', JSON.stringify(data.user));
-    return data.user;
-  } else {
-    throw new Error(data.message || 'Login failed');
-  }
-};
-
-export const register = async (email: string, password: string): Promise<User> => {
-  const data = await fetchWithTimeout(`${API_URL}/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password })
-  }).then(handleResponse);
-
-  if (data.success && data.user) {
-    localStorage.setItem('outreach_user', JSON.stringify(data.user));
-    return data.user;
-  } else {
-    throw new Error(data.message || 'Registration failed');
-  }
-};
-
-export const logout = () => {
-  localStorage.removeItem('outreach_user');
-};
-
-export const getCurrentUser = (): User | null => {
-  const u = localStorage.getItem('outreach_user');
-  try {
-    return u ? JSON.parse(u) : null;
-  } catch (e) {
-    return null;
-  }
+const getHeaders = () => {
+  return { 'Content-Type': 'application/json' };
 };
 
 // --- Contacts ---
 export const getContacts = async (): Promise<Contact[]> => {
-  return fetchWithTimeout(`${API_URL}/contacts`, { headers: getAuthHeaders() }).then(handleResponse);
+  return fetchWithTimeout(`${API_URL}/contacts`, { headers: getHeaders() }).then(handleResponse);
 };
 
 export const addContacts = async (contacts: Contact[]) => {
   return fetchWithTimeout(`${API_URL}/contacts`, {
     method: 'POST',
-    headers: getAuthHeaders(),
+    headers: getHeaders(),
     body: JSON.stringify(contacts)
   }).then(handleResponse);
 };
 
 // --- Campaigns ---
 export const getCampaigns = async (): Promise<Campaign[]> => {
-  return fetchWithTimeout(`${API_URL}/campaigns`, { headers: getAuthHeaders() }).then(handleResponse);
+  return fetchWithTimeout(`${API_URL}/campaigns`, { headers: getHeaders() }).then(handleResponse);
 };
 
 export const saveCampaign = async (campaign: Campaign) => {
   return fetchWithTimeout(`${API_URL}/campaigns`, {
     method: 'POST',
-    headers: getAuthHeaders(),
+    headers: getHeaders(),
     body: JSON.stringify(campaign)
   }).then(handleResponse);
 };
 
 export const getEmailLogs = async (campaignId?: string): Promise<EmailLog[]> => {
-  const logs: EmailLog[] = await fetchWithTimeout(`${API_URL}/logs`, { headers: getAuthHeaders() }).then(handleResponse);
+  const logs: EmailLog[] = await fetchWithTimeout(`${API_URL}/logs`, { headers: getHeaders() }).then(handleResponse);
   if (campaignId) return logs.filter(l => l.campaignId === campaignId);
   return logs;
 };
@@ -149,7 +102,7 @@ export const getEmailLogs = async (campaignId?: string): Promise<EmailLog[]> => 
 export const scrapeWebsite = async (url: string): Promise<string[]> => {
   return fetchWithTimeout(`${API_URL}/scrape/website`, {
     method: 'POST',
-    headers: getAuthHeaders(),
+    headers: getHeaders(),
     body: JSON.stringify({ url })
   }).then(handleResponse);
 };
@@ -158,7 +111,7 @@ export const scrapeGoogleMaps = async (url: string, onProgress?: (msg: string) =
   if (onProgress) onProgress('Connecting to remote browser...');
   const res = await fetchWithTimeout(`${API_URL}/scrape/google-maps`, {
     method: 'POST',
-    headers: getAuthHeaders(),
+    headers: getHeaders(),
     body: JSON.stringify({ url }),
     timeout: 120000 
   }).then(handleResponse);
@@ -169,30 +122,30 @@ export const scrapeGoogleMaps = async (url: string, onProgress?: (msg: string) =
 
 // --- Settings ---
 export const getSmtpConfig = async (): Promise<SmtpConfig> => {
-  return fetchWithTimeout(`${API_URL}/smtp`, { headers: getAuthHeaders() }).then(handleResponse);
+  return fetchWithTimeout(`${API_URL}/smtp`, { headers: getHeaders() }).then(handleResponse);
 };
 
 export const saveSmtpConfig = async (config: SmtpConfig) => {
   return fetchWithTimeout(`${API_URL}/smtp`, {
     method: 'POST',
-    headers: getAuthHeaders(),
+    headers: getHeaders(),
     body: JSON.stringify(config)
   }).then(handleResponse);
 };
 
 // --- Admin ---
 export const getSystemStats = async (): Promise<SystemStats> => {
-  return fetchWithTimeout(`${API_URL}/admin/stats`, { headers: getAuthHeaders() }).then(handleResponse);
+  return fetchWithTimeout(`${API_URL}/admin/stats`, { headers: getHeaders() }).then(handleResponse);
 };
 
 export const getAllUsers = async (): Promise<any[]> => {
-  return fetchWithTimeout(`${API_URL}/admin/users`, { headers: getAuthHeaders() }).then(handleResponse);
+  return fetchWithTimeout(`${API_URL}/admin/users`, { headers: getHeaders() }).then(handleResponse);
 };
 
 export const toggleUserStatus = async (userId: string) => {
   return fetchWithTimeout(`${API_URL}/admin/users/toggle`, {
     method: 'POST',
-    headers: getAuthHeaders(),
+    headers: getHeaders(),
     body: JSON.stringify({ userId })
   }).then(handleResponse);
 };
